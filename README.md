@@ -1,6 +1,10 @@
 # meal_recipes_app
 
-A new Flutter project.
+## Images
+![Lab2_Image1](https://github.com/user-attachments/assets/affbf5d0-c2bc-448a-89c6-83877a69cd59)
+![Lab2_Image2](https://github.com/user-attachments/assets/d000bda3-9190-46ed-9340-9d6755c400c6)
+![Lab2_Image3](https://github.com/user-attachments/assets/1140927a-4e29-4367-af39-472f39b52091)
+
 
 ## Getting Started
 
