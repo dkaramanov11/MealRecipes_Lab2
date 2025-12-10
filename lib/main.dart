@@ -1,7 +1,64 @@
 import 'package:flutter/material.dart';
 import 'screens/categories_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'services/meal_api_service.dart';
+import 'screens/meal_detail_screen.dart';
 
-void main() {
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+Future<void> openRandomMealFromNotification() async {
+  final apiService = MealApiService();
+
+  try {
+    final randomMeal = await apiService.getRandomMeal();
+
+    navigatorKey.currentState?.push(
+      MaterialPageRoute(
+        builder: (_) => MealDetailScreen(
+          mealId: randomMeal.id,
+        ),
+      ),
+    );
+  } catch (e) {
+    print('Error opening random meal from notification: $e');
+  }
+}
+
+void _setupFCMListeners() {
+  FirebaseMessaging.instance.getInitialMessage().then((message) {
+    if (message != null) {
+      _handleFCMMessage(message);
+    }
+  });
+
+  FirebaseMessaging.onMessageOpenedApp.listen((message) {
+    _handleFCMMessage(message);
+  });
+}
+
+void _handleFCMMessage(RemoteMessage message) {
+  final action = message.data['action'];
+  print('FCM data: ${message.data}');
+
+  if (action == 'open_random_meal') {
+    openRandomMealFromNotification();
+  }
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+
+  await FirebaseMessaging.instance.requestPermission(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+
+  final token = await FirebaseMessaging.instance.getToken();
+  print('FCM token: $token');
+
   runApp(const MyApp());
 }
 
@@ -17,6 +74,7 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       title: 'Meal Recipes',
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,

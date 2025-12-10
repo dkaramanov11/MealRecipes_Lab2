@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import '../models/category.dart';
 import '../services/meal_api_service.dart';
 import '../widgets/category_card.dart';
+import 'favorites_screen.dart';
 import 'meals_by_category_screen.dart';
 import 'meal_detail_screen.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -97,6 +99,32 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     }
   }
 
+  Future<void> _setupNotificationInteractions() async {
+
+    RemoteMessage? initialMessage =
+    await FirebaseMessaging.instance.getInitialMessage();
+
+    if (initialMessage != null) {
+      _openRandomMeal();
+    }
+
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      _openRandomMeal();
+    });
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      final notification = message.notification;
+      if (notification != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(notification.title ?? 'New meal notification'),
+          ),
+        );
+      }
+    });
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -105,9 +133,17 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         title: const Text('Meal Categories'),
         actions: [
           IconButton(
-            onPressed: _openRandomMeal,
+            icon: const Icon(Icons.favorite),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const FavoritesScreen()),
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.shuffle),
-            tooltip: 'Random meal',
+            onPressed: _openRandomMeal,
           ),
         ],
       ),
